@@ -26,6 +26,8 @@ func RegisterRoutes(router *gin.Engine) {
 	v1 := router.Group("/api/v1")
 	{
 		v1.GET("/health", healthController.Health)
+		v1.HEAD("/health", healthController.Health)
 		v1.GET("/health/db", healthController.DBHealth)
+		v1.HEAD("/health/db", healthController.DBHealth)
 	}
 }
