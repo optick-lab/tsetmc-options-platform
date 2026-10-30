@@ -13,11 +13,11 @@ A dockerized platform for collecting, storing, and analyzing Tehran Stock Exchan
    docker compose up -d --build
    ```
 3. Open the frontend in your browser:
-   [http://localhost:3000](http://localhost:3000)
+   [http://localhost:3080](http://localhost:3080)
 
 4. Verify backend health endpoints:
-   - Application health: [http://localhost:8080/api/v1/health](http://localhost:8080/api/v1/health)
-   - Database health: [http://localhost:8080/api/v1/health/db](http://localhost:8080/api/v1/health/db)
+   - Application health: [http://localhost:8085/api/v1/health](http://localhost:8085/api/v1/health)
+   - Database health: [http://localhost:8085/api/v1/health/db](http://localhost:8085/api/v1/health/db)
 
 ## Folder Layout
 

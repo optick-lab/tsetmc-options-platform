@@ -30,8 +30,8 @@ func Load() *Config {
 		_ = godotenv.Load()
 
 		appEnv := getEnv("APP_ENV", "local")
-		appPort := getEnv("APP_PORT", "8080")
-		originsRaw := getEnv("APP_ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
+		appPort := getEnv("APP_PORT", "8085")
+		originsRaw := getEnv("APP_ALLOWED_ORIGINS", "http://localhost:3080,http://127.0.0.1:3080,http://localhost:3000,http://127.0.0.1:3000")
 		var origins []string
 		for _, o := range strings.Split(originsRaw, ",") {
 			trimmed := strings.TrimSpace(o)
@@ -45,7 +45,7 @@ func Load() *Config {
 			AppPort:           appPort,
 			AppAllowedOrigins: origins,
 			DBHost:            getEnv("DB_HOST", "localhost"),
-			DBPort:            getEnv("DB_PORT", "5432"),
+			DBPort:            getEnv("DB_PORT", "5440"),
 			DBUser:            getEnv("DB_USER", "postgres"),
 			DBPassword:        getEnv("DB_PASSWORD", "change_me"),
 			DBName:            getEnv("DB_NAME", "tsetmc_options"),
