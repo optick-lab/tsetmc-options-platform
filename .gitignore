@@ -5,6 +5,7 @@ backend/app
 dist/
 build/
 coverage/
+*.tsbuildinfo
 *.exe
 *.exe~
 *.dll
