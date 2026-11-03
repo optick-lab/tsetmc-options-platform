@@ -1,0 +1,40 @@
+# Binaries and build artifacts
+backend/bin/
+backend/main
+backend/app
+dist/
+build/
+coverage/
+*.tsbuildinfo
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Dependencies
+node_modules/
+vendor/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Data, raw files, archives, and logs
+data/
+raw/
+*.gz
+log/
+logs/
+*.log
+
+# IDE, OS, and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

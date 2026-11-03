@@ -1,0 +1,63 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: tsetmc-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change_me}
+      POSTGRES_DB: ${DB_NAME:-tsetmc_options}
+    ports:
+      - "${DB_PORT:-5440}:5432"
+    expose:
+      - "5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-tsetmc_options}"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+      start_period: 2s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tsetmc-backend
+    restart: unless-stopped
+    environment:
+      APP_ENV: ${APP_ENV:-local}
+      APP_PORT: 8080
+      APP_ALLOWED_ORIGINS: ${APP_ALLOWED_ORIGINS:-http://localhost:3080,http://127.0.0.1:3080,http://localhost:3000,http://127.0.0.1:3000}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-change_me}
+      DB_NAME: ${DB_NAME:-tsetmc_options}
+    ports:
+      - "${APP_PORT:-8085}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider http://127.0.0.1:8080/api/v1/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: tsetmc-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3080}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  pgdata:
