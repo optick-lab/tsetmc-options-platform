@@ -2,4 +2,4 @@
 
 Platform documentation, architectural notes, and guides.
 
-> Note: `cookbook.md` will be added in E1-1.
+> Cookbook: [`tsetmc_api_cookbook.md`](tsetmc_api_cookbook.md) (E1-1). Raw responses live in `samples/`.
