@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS raw_responses CASCADE;
+DROP TABLE IF EXISTS option_contracts CASCADE;
+DROP TABLE IF EXISTS underlying_assets CASCADE;

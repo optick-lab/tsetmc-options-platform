@@ -30,9 +30,17 @@ var migrateUpCmd = &cobra.Command{
 }
 
 var migrateDownCmd = &cobra.Command{
-	Use:   "down",
-	Short: "Roll back all migrations",
+	Use:   "down [steps]",
+	Short: "Roll back migrations (all by default, or specify step count)",
+	Args:  cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) == 1 {
+			steps, err := strconv.Atoi(args[0])
+			if err != nil {
+				return fmt.Errorf("invalid step count: %w", err)
+			}
+			return database.MigrateDown(steps)
+		}
 		return database.MigrateDown()
 	},
 }
