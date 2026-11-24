@@ -18,8 +18,8 @@ The crawler is responsible for responsibly fetching financial data from the TSET
 
 ## 2. Politeness Guardrails
 
-### 2.1 Fixed Slow Rate Limit (Single Worker)
-- **Rate**: 1 request every 3.0 seconds by default (configurable via `CRAWLER_RATE_LIMIT_SECONDS`).
+### 2.1 Conservative Rate Limit & Pacing (Single Worker)
+- **Rate**: 1 request every 300.0 seconds (5 minutes) by default (configurable via `CRAWLER_MIN_DELAY_SECONDS`, fallback `CRAWLER_RATE_LIMIT_SECONDS`).
 - **Concurrency**: Strictly single worker (`concurrency = 1`), no parallel threads or async workers.
 - **Enforcement**: In-memory rate limiter tracks timestamps between consecutive outbound requests and sleeps as necessary.
 
@@ -91,7 +91,7 @@ All crawler options are loaded from environment variables (see `.env.example`):
 | `DB_PASSWORD` | `change_me` | Database password |
 | `DB_NAME` | `tsetmc_options` | Database name |
 | `CRAWLER_BASE_URL` | `https://cdn.tsetmc.com/api` | Base API URL |
-| `CRAWLER_RATE_LIMIT_SECONDS` | `3.0` | Minimum wait between requests |
+| `CRAWLER_MIN_DELAY_SECONDS` | `300.0` | Minimum wait between requests (default 5 min) |
 | `CRAWLER_MAX_RETRIES` | `3` | Maximum retry attempts |
 | `CRAWLER_BACKOFF_FACTOR` | `1.0` | Base exponential backoff multiplier |
 | `CRAWLER_USER_AGENT` | `tsetmc-options-platform/0.1 (student project; optick-lab)` | Honest User-Agent |
@@ -121,7 +121,25 @@ python -m crawler fetch \
 - `--refetch`: Bypass resume check and re-fetch from TSETMC even if already cached.
 - `--force-light`: Permit a single light request during quiet hours (`09:00 - 12:30 Asia/Tehran`).
 
-### 5.3 Docker Compose Execution
+### 5.3 Range Fetch Command (`fetch-range`)
+Fetches trade history across a date range for a specific instrument:
+
+```bash
+python -m crawler fetch-range \
+  --ins-code "31459957843277944" \
+  --from "20261101" \
+  --to "20261123"
+```
+
+#### Range Fetch Features:
+- **Weekend Skipping**: Automatically skips Thursdays and Fridays (Tehran weekend days).
+- **Resumable**: Queries `raw_responses` before each date. If a valid response exists, it skips fetching and marks it as `skipped`.
+- **Block Protection**: At the first sign of HTTP 403, 429, or block signature, terminates immediately (`BLOCKED — stop and notify mentor`) with exit code 1.
+- **Market Quiet Hours**: Verified against `Asia/Tehran` timezone. Unless `--force-light` is passed, runs are rejected between 09:00 and 12:30 Tehran time.
+- **Progress & Summary**: Prints real-time progress for each date and a final summary:
+  `Summary: fetched=X, skipped=Y, empty=Z, errors=W`.
+
+### 5.4 Docker Compose Execution
 The crawler is integrated as a one-shot container in `docker-compose.yml`:
 
 ```bash
@@ -134,6 +152,12 @@ docker compose run --rm crawler python -m crawler fetch \
   --ins-code "46348559193224090" \
   --date "20241124" \
   --force-light
+
+# Run a date range fetch
+docker compose run --rm crawler python -m crawler fetch-range \
+  --ins-code "31459957843277944" \
+  --from "20261101" \
+  --to "20261123"
 ```
 
 ---
