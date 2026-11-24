@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"errors"
 
 	"backend/src/models"
 
@@ -24,6 +25,10 @@ func NewUnderlyingRepository(db *gorm.DB) UnderlyingRepository {
 
 // GetPaginated retrieves underlying assets ordered by symbol ASC with total count.
 func (r *underlyingRepository) GetPaginated(ctx context.Context, offset int, limit int) ([]models.UnderlyingAsset, int64, error) {
+	if r.db == nil {
+		return nil, 0, errors.New("database connection is not initialized")
+	}
+
 	var items []models.UnderlyingAsset
 	var total int64
 
