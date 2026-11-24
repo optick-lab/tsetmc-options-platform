@@ -23,6 +23,7 @@ func RegisterRoutes(router *gin.Engine) {
 
 	healthController := controllers.NewHealthController()
 	underlyingController := controllers.NewUnderlyingController()
+	rawResponseController := controllers.NewRawResponseController()
 
 	v1 := router.Group("/api/v1")
 	{
@@ -32,5 +33,9 @@ func RegisterRoutes(router *gin.Engine) {
 		v1.HEAD("/health/db", healthController.DBHealth)
 		v1.GET("/underlyings", underlyingController.List)
 		v1.HEAD("/underlyings", underlyingController.List)
+		v1.GET("/raw-responses", rawResponseController.List)
+		v1.HEAD("/raw-responses", rawResponseController.List)
+		v1.GET("/raw-responses/:id/trades", rawResponseController.GetTrades)
+		v1.HEAD("/raw-responses/:id/trades", rawResponseController.GetTrades)
 	}
 }
