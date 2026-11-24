@@ -6,6 +6,7 @@
   flex-direction: column;
   align-items: center;
   gap: 2rem;
+  direction: rtl;
 }
 
 .home-header {
@@ -15,7 +16,7 @@
 .home-title {
   font-size: 2.25rem;
   font-weight: 700;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.01em;
   color: var(--color-text-primary);
   margin-bottom: 0.5rem;
 }
@@ -38,9 +39,9 @@
   font-size: 1.1rem;
   font-weight: 600;
   color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
   margin-bottom: 1rem;
+  text-align: right;
 }
 
 .status-row {
@@ -50,6 +51,7 @@
   padding: 0.75rem 1rem;
   border-radius: var(--radius-sm);
   background: rgba(0, 0, 0, 0.2);
+  direction: rtl;
 }
 
 .status-label {
@@ -65,7 +67,7 @@
   border-radius: 9999px;
   font-size: 0.875rem;
   font-weight: 600;
-  font-family: var(--font-family-mono);
+  font-family: var(--font-family-sans);
 }
 
 .status-badge.ok {

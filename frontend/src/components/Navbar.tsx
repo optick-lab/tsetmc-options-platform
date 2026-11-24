@@ -10,15 +10,15 @@ export function Navbar() {
     <header className="navbar">
       <div className="navbar-container">
         <div className="navbar-brand">
-          <span className="brand-title">TSETMC Options</span>
-          <span className="brand-tag">Tick Data</span>
+          <span className="brand-title">سامانه اختیار معامله TSETMC</span>
+          <span className="brand-tag">داده‌های تیک</span>
         </div>
         <nav className="navbar-nav">
           <NavLink
             to="/"
             className={`nav-link ${isUnderlyingsActive ? 'active' : ''}`}
           >
-            Underlying Assets
+            دارایی‌های پایه
           </NavLink>
           <NavLink
             to="/status"
@@ -26,7 +26,7 @@ export function Navbar() {
               `nav-link ${isActive ? 'active' : ''}`
             }
           >
-            System Status
+            وضعیت سیستم
           </NavLink>
         </nav>
       </div>

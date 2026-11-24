@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { formatAssetType, toPersianDigits } from '../lib/format';
 import { getUnderlyings, PaginatedUnderlyings } from '../lib/underlyings';
 import './UnderlyingAssetsPage.css';
 
@@ -19,7 +20,7 @@ export function UnderlyingAssetsPage() {
         setLoading(false);
       })
       .catch((err: Error) => {
-        setError(err.message || 'Failed to load underlying assets');
+        setError(err.message || 'خطا در برقراری ارتباط با سرور');
         setLoading(false);
       });
   };
@@ -31,57 +32,63 @@ export function UnderlyingAssetsPage() {
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.page_size)) : 1;
 
   return (
-    <main className="underlyings-container">
+    <main className="underlyings-container" dir="rtl">
       <header className="page-header">
-        <h1 className="page-title">Underlying Assets</h1>
+        <h1 className="page-title">دارایی‌های پایه</h1>
         <p className="page-subtitle">
-          Spot market instruments (stocks, ETFs, funds) eligible for options contracts.
+          ابزارهای بازار نقدی (سهام و صندوق‌ها) مشمول قراردادهای اختیار معامله
         </p>
       </header>
 
       <div className="table-card">
         {loading && (
           <div className="state-container">
-            <p className="loading-text">Loading underlying assets...</p>
+            <p className="loading-text">در حال بارگذاری دارایی‌های پایه...</p>
           </div>
         )}
 
         {error && !loading && (
           <div className="state-container">
             <div className="error-box">
-              <p>Error: {error}</p>
+              <p>خطا در دریافت اطلاعات: {error}</p>
               <button
                 type="button"
                 className="retry-btn"
                 onClick={() => fetchData(page)}
               >
-                Retry
+                تلاش مجدد
               </button>
             </div>
           </div>
         )}
 
-        {!loading && !error && data && (
+        {!loading && !error && data && data.items.length === 0 && (
+          <div className="state-container">
+            <p className="empty-text">هیچ دارایی پایه‌ای یافت نشد.</p>
+          </div>
+        )}
+
+        {!loading && !error && data && data.items.length > 0 && (
           <>
             <div className="table-wrapper">
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Symbol</th>
-                    <th>Asset Type</th>
-                    <th>Instrument Code</th>
+                    <th>نماد</th>
+                    <th>نوع دارایی</th>
+                    <th>کد نماد</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.items.map((item) => (
                     <tr key={item.id}>
-                      <td className="symbol-cell" dir="rtl">{item.symbol}</td>
+                      <td className="symbol-cell">{item.symbol}</td>
                       <td>
                         <span className={`type-badge ${item.asset_type.toLowerCase()}`}>
-                          {item.asset_type}
+                          {formatAssetType(item.asset_type)}
                         </span>
                       </td>
-                      <td className="code-cell">
+                      <td className="code-cell" dir="ltr">
                         {item.ins_code ? (
                           item.ins_code
                         ) : (
@@ -96,7 +103,7 @@ export function UnderlyingAssetsPage() {
 
             <div className="pagination-bar">
               <span className="pagination-info">
-                Page {data.page} of {totalPages} (Total: {data.total} assets)
+                صفحه {toPersianDigits(data.page)} از {toPersianDigits(totalPages)} (مجموع: {toPersianDigits(data.total)} دارایی)
               </span>
 
               <div className="pagination-actions">
@@ -106,7 +113,7 @@ export function UnderlyingAssetsPage() {
                   disabled={data.page <= 1 || loading}
                   onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                 >
-                  Previous
+                  قبلی
                 </button>
                 <button
                   type="button"
@@ -114,7 +121,7 @@ export function UnderlyingAssetsPage() {
                   disabled={data.page >= totalPages || loading}
                   onClick={() => setPage((prev) => prev + 1)}
                 >
-                  Next
+                  بعدی
                 </button>
               </div>
             </div>

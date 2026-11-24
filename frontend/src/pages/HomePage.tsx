@@ -3,41 +3,41 @@ import { getHealth } from '../lib/health';
 import './HomePage.css';
 
 export function HomePage() {
-  const [status, setStatus] = useState<string>('checking...');
+  const [status, setStatus] = useState<string>('در حال بررسی...');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getHealth()
       .then((data) => {
-        setStatus(data.status || 'ok');
+        setStatus(data.status === 'ok' ? 'فعال و آماده‌به‌کار' : data.status || 'فعال');
         setLoading(false);
       })
       .catch((err: Error) => {
-        setStatus('unreachable');
+        setStatus('عدم برقراری ارتباط');
         setError(err.message);
         setLoading(false);
       });
   }, []);
 
   return (
-    <main className="home-container">
+    <main className="home-container" dir="rtl">
       <header className="home-header">
-        <h1 className="home-title">TSETMC Options Platform</h1>
-        <p className="home-subtitle">Tick Data & Analytics Platform</p>
+        <h1 className="home-title">سامانه اختیار معامله TSETMC</h1>
+        <p className="home-subtitle">سکوی جمع‌آوری و پردازش داده‌های تیک بازار ابزارهای مشتقه</p>
       </header>
 
       <section className="card">
-        <h2 className="card-title">System Status</h2>
+        <h2 className="card-title">وضعیت سیستم</h2>
         <div className="status-row">
-          <span className="status-label">Backend API Status</span>
+          <span className="status-label">وضعیت سرویس API بک‌اند</span>
           <span
             className={`status-badge ${
               loading ? 'loading' : error ? 'error' : 'ok'
             }`}
           >
             <span className="status-dot" />
-            {loading ? 'checking...' : status}
+            {loading ? 'در حال بررسی...' : status}
           </span>
         </div>
       </section>
