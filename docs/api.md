@@ -90,37 +90,21 @@ Returns a paginated list of underlying instruments (stocks, ETFs, mutual funds) 
     "page_size": 2,
     "total": 25
   },
-  "items": [
-    {
-      "id": 20,
-      "symbol": "اخابر",
-      "ins_code": null,
-      "asset_type": "stock"
-    },
-    {
-      "id": 1,
-      "symbol": "اطلس",
-      "ins_code": null,
-      "asset_type": "etf"
-    }
-  ],
-  "page": 1,
-  "page_size": 2,
-  "total": 25,
   "errors": null,
   "error_code": 0
 }
 ```
 
 #### Field Descriptions
-- `items`: Array of underlying asset records.
-  - `id`: Unique surrogate identifier (bigserial).
-  - `symbol`: Official Persian symbol (e.g. `خودرو`, `همتراز`).
-  - `ins_code`: TSETMC instrument code string, or `null` if not yet matched.
-  - `asset_type`: Asset classification (`stock`, `etf`, `fund`).
-- `page`: The current active page number.
-- `page_size`: The number of items requested per page.
-- `total`: Total count of underlying assets across all pages.
+- `data`: Paginated payload object:
+  - `items`: Array of underlying asset records.
+    - `id`: Unique surrogate identifier (bigserial).
+    - `symbol`: Official Persian symbol (e.g. `خودرو`, `همتراز`).
+    - `ins_code`: TSETMC instrument code string, or `null` if not yet matched.
+    - `asset_type`: Asset classification (`stock`, `etf`, `fund`).
+  - `page`: The current active page number.
+  - `page_size`: The number of items requested per page.
+  - `total`: Total count of underlying assets across all pages.
 
 #### Error Response (`400 Bad Request`)
 Returned when invalid pagination parameters are provided (e.g. `page < 1`, `page_size < 1`, `page_size > 100`, or non-integer values).
