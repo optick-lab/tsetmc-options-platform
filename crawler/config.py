@@ -8,7 +8,8 @@ load_dotenv()
 @dataclass
 class CrawlerConfig:
     base_url: str = "https://cdn.tsetmc.com/api"
-    rate_limit_seconds: float = 3.0
+    min_delay_seconds: float = 300.0
+    rate_limit_seconds: float = 300.0
     max_retries: int = 3
     backoff_factor: float = 1.0
     user_agent: str = "tsetmc-options-platform/0.1 (student project; optick-lab)"
@@ -26,11 +27,25 @@ class CrawlerConfig:
     db_password: str = "change_me"
     db_name: str = "tsetmc_options"
 
+    def __post_init__(self):
+        # Synchronize min_delay_seconds and rate_limit_seconds
+        if self.min_delay_seconds != 300.0 and self.rate_limit_seconds == 300.0:
+            self.rate_limit_seconds = self.min_delay_seconds
+        elif self.rate_limit_seconds != 300.0 and self.min_delay_seconds == 300.0:
+            self.min_delay_seconds = self.rate_limit_seconds
+
     @classmethod
     def from_env(cls) -> "CrawlerConfig":
+        delay = float(
+            os.getenv(
+                "CRAWLER_MIN_DELAY_SECONDS",
+                os.getenv("CRAWLER_RATE_LIMIT_SECONDS", "300.0"),
+            )
+        )
         return cls(
             base_url=os.getenv("CRAWLER_BASE_URL", "https://cdn.tsetmc.com/api").rstrip("/"),
-            rate_limit_seconds=float(os.getenv("CRAWLER_RATE_LIMIT_SECONDS", "3.0")),
+            min_delay_seconds=delay,
+            rate_limit_seconds=delay,
             max_retries=int(os.getenv("CRAWLER_MAX_RETRIES", "3")),
             backoff_factor=float(os.getenv("CRAWLER_BACKOFF_FACTOR", "1.0")),
             user_agent=os.getenv(

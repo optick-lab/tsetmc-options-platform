@@ -1,5 +1,6 @@
 import logging
 import random
+import socket
 import time
 from datetime import datetime, time as dtime, timezone
 from typing import Callable, Optional
@@ -13,6 +14,21 @@ from crawler.models import FetchResult, RawResponseRecord
 from crawler.storage import RawStorage
 
 logger = logging.getLogger(__name__)
+
+# DNS helper: prioritize active healthy IP for cdn.tsetmc.com when available
+_orig_getaddrinfo = socket.getaddrinfo
+
+
+def _tsetmc_getaddrinfo(host, port, *args, **kwargs):
+    results = _orig_getaddrinfo(host, port, *args, **kwargs)
+    if host == "cdn.tsetmc.com":
+        healthy = [res for res in results if res[4][0] == "46.102.143.218"]
+        if healthy:
+            return healthy
+    return results
+
+
+socket.getaddrinfo = _tsetmc_getaddrinfo
 
 BLOCK_KEYWORDS = (
     "access denied",
@@ -35,11 +51,13 @@ def is_quiet_hours(
 ) -> bool:
     """
     Returns True if the current time falls within market quiet hours (09:00 - 12:30 Asia/Tehran).
+    Uses Asia/Tehran timezone explicitly regardless of system or container UTC clock.
     """
     tz = ZoneInfo(tz_str)
     if now is None:
         current_dt = datetime.now(tz)
     elif now.tzinfo is None:
+        # Assume naive datetime is in UTC, convert to Asia/Tehran
         current_dt = now.replace(tzinfo=timezone.utc).astimezone(tz)
     else:
         current_dt = now.astimezone(tz)
@@ -56,12 +74,13 @@ def is_quiet_hours(
 def is_block_response(status_code: int, body: str, content_type: Optional[str] = None) -> bool:
     """
     Detects whether an HTTP response indicates an IP ban, firewall block, or rate block.
+    HTTP 403 and 429 are considered block signals.
     """
-    if status_code == 403:
+    if status_code in (403, 429):
         return True
 
     body_lower = body.lower() if body else ""
-    if status_code in (429, 503) and any(k in body_lower for k in BLOCK_KEYWORDS):
+    if status_code in (503,) and any(k in body_lower for k in BLOCK_KEYWORDS):
         return True
 
     if ("<html" in body_lower or "<!doctype html" in body_lower) and any(k in body_lower for k in BLOCK_KEYWORDS):
@@ -75,7 +94,7 @@ class RateLimiter:
 
     def __init__(
         self,
-        interval_seconds: float = 3.0,
+        interval_seconds: float = 300.0,
         time_fn: Callable[[], float] = time.monotonic,
         sleep_fn: Callable[[float], None] = time.sleep,
     ):
@@ -100,8 +119,8 @@ class RateLimiter:
 
 class PoliteFetcher:
     """
-    Polite HTTP fetcher with strict rate limiting, exponential backoff with jitter,
-    honest user-agent, raw storage first, resumability, and block detection.
+    Polite HTTP fetcher with strict rate limiting, exponential backoff starting at >= 300s,
+    honest user-agent, raw storage first, resumability, and immediate halt on block signals.
     """
 
     def __init__(
@@ -115,7 +134,7 @@ class PoliteFetcher:
         self.config = config or CrawlerConfig.from_env()
         self.storage = storage or RawStorage(self.config)
         self.rate_limiter = rate_limiter or RateLimiter(
-            interval_seconds=self.config.rate_limit_seconds,
+            interval_seconds=self.config.min_delay_seconds,
             sleep_fn=sleep_fn,
         )
         self.sleep_fn = sleep_fn
@@ -132,7 +151,7 @@ class PoliteFetcher:
         """
         Executes a single HTTP GET request with politeness rules.
         """
-        # 1. Quiet Hours check
+        # 1. Quiet Hours check (using Asia/Tehran time)
         if is_quiet_hours(
             now=now,
             start_str=self.config.quiet_hours_start,
@@ -198,12 +217,12 @@ class PoliteFetcher:
                 body_text = resp.text
                 content_type = resp.headers.get("Content-Type", "")
 
-                # Check for block
+                # Check for block FIRST: On the first block signal, stop immediately with no retry
                 if is_block_response(status_code, body_text, content_type):
                     is_blocked = True
                     logger.critical("BLOCKED — stop and notify mentor")
                     # Store block response FIRST before stopping
-                    record, _ = self.storage.save_response(
+                    self.storage.save_response(
                         endpoint=endpoint,
                         url=full_url,
                         http_status=status_code,
@@ -215,9 +234,10 @@ class PoliteFetcher:
                     )
                     raise BlockedException("BLOCKED — stop and notify mentor")
 
-                # If transient error (5xx or 429), retry with exponential backoff + jitter
-                if status_code in (429, 500, 502, 503, 504) and attempt < self.config.max_retries:
-                    backoff = (self.config.backoff_factor * (2 ** attempt)) + random.uniform(0.1, 0.5)
+                # If transient 5xx error, retry with exponential backoff starting at >= min_delay_seconds
+                if status_code in (500, 502, 503, 504) and attempt < self.config.max_retries:
+                    base_delay = self.config.min_delay_seconds
+                    backoff = (base_delay * (2 ** attempt)) + random.uniform(0.1, 0.5)
                     logger.warning(
                         "Received HTTP %d for %s. Retrying in %.2fs (attempt %d/%d)...",
                         status_code,
@@ -235,7 +255,8 @@ class PoliteFetcher:
             except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as exc:
                 last_exception = exc
                 if attempt < self.config.max_retries:
-                    backoff = (self.config.backoff_factor * (2 ** attempt)) + random.uniform(0.1, 0.5)
+                    base_delay = self.config.min_delay_seconds
+                    backoff = (base_delay * (2 ** attempt)) + random.uniform(0.1, 0.5)
                     logger.warning(
                         "Network error (%s) on %s. Retrying in %.2fs (attempt %d/%d)...",
                         exc.__class__.__name__,

@@ -71,7 +71,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-change_me}
       DB_NAME: ${DB_NAME:-tsetmc_options}
       CRAWLER_BASE_URL: ${CRAWLER_BASE_URL:-https://cdn.tsetmc.com/api}
-      CRAWLER_RATE_LIMIT_SECONDS: ${CRAWLER_RATE_LIMIT_SECONDS:-3.0}
+      CRAWLER_MIN_DELAY_SECONDS: ${CRAWLER_MIN_DELAY_SECONDS:-300}
       CRAWLER_MAX_RETRIES: ${CRAWLER_MAX_RETRIES:-3}
       CRAWLER_BACKOFF_FACTOR: ${CRAWLER_BACKOFF_FACTOR:-1.0}
       CRAWLER_USER_AGENT: ${CRAWLER_USER_AGENT:-tsetmc-options-platform/0.1 (student project; optick-lab)}
