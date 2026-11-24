@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 import pytest
 import requests
 
+from crawler.config import CrawlerConfig
 from crawler.exceptions import BlockedException, QuietHoursException
 from crawler.fetcher import PoliteFetcher, RateLimiter, is_block_response, is_quiet_hours
 
@@ -43,8 +44,8 @@ def test_rate_limit_wait():
     assert len(slept_durations) == 1
 
 
-def test_retry_backoff_on_5xx_and_timeout(mock_storage, test_config):
-    """Verify exponential backoff with jitter on 5xx errors and timeouts up to max_retries."""
+def test_retry_backoff_on_5xx_and_timeout(mock_storage):
+    """Verify exponential backoff on 5xx errors and timeouts starts at >= 300s by default."""
     slept_durations = []
 
     def mock_sleep(d):
@@ -64,9 +65,11 @@ def test_retry_backoff_on_5xx_and_timeout(mock_storage, test_config):
     # Fails twice with 500, then succeeds on 3rd attempt
     mock_session.get.side_effect = [mock_resp_500, mock_resp_500, mock_resp_200]
 
+    # Default CrawlerConfig has min_delay_seconds = 300.0
+    config = CrawlerConfig()
     rate_limiter = RateLimiter(interval_seconds=0.0)
     fetcher = PoliteFetcher(
-        config=test_config,
+        config=config,
         storage=mock_storage,
         session=mock_session,
         rate_limiter=rate_limiter,
@@ -84,10 +87,10 @@ def test_retry_backoff_on_5xx_and_timeout(mock_storage, test_config):
     assert result.record.http_status == 200
     assert result.record.body == '{"success": true}'
     assert mock_session.get.call_count == 3
-    # Two backoff sleeps occurred
+    # Two backoff sleeps occurred, starting at >= 300s
     assert len(slept_durations) == 2
-    assert slept_durations[0] >= 1.0  # 2^0 + jitter
-    assert slept_durations[1] >= 2.0  # 2^1 + jitter
+    assert slept_durations[0] >= 300.0  # 300 * 2^0 + jitter
+    assert slept_durations[1] >= 600.0  # 300 * 2^1 + jitter
 
 
 def test_block_detection_stops_run_and_logs_error(mock_storage, test_config, caplog):
@@ -164,6 +167,17 @@ def test_quiet_hours_restriction(mock_storage, test_config):
     assert res.record is not None
     assert res.record.http_status == 200
     assert mock_session.get.call_count == 1
+
+
+def test_quiet_hours_uses_asia_tehran_not_utc():
+    """Verify quiet-hours check uses Asia/Tehran time, not container UTC."""
+    # When container UTC is 06:00, in Tehran it is 09:30 (inside quiet hours 09:00 - 12:30)
+    utc_morning = datetime(2026, 11, 24, 6, 0, 0, tzinfo=ZoneInfo("UTC"))
+    assert is_quiet_hours(utc_morning) is True
+
+    # When container UTC is 09:30, in Tehran it is 13:00 (outside quiet hours)
+    utc_afternoon = datetime(2026, 11, 24, 9, 30, 0, tzinfo=ZoneInfo("UTC"))
+    assert is_quiet_hours(utc_afternoon) is False
 
 
 def test_honest_user_agent(mock_storage, test_config):
