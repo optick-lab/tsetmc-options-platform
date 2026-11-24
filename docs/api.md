@@ -122,3 +122,110 @@ Returned when invalid pagination parameters are provided (e.g. `page < 1`, `page
   "error_code": 40000
 }
 ```
+
+---
+
+### 3. Raw Responses & Trade Data Extraction
+
+#### `GET /api/v1/raw-responses`
+Returns the list of all archived raw responses stored in the `raw_responses` table, excluding response bodies to conserve bandwidth.
+
+##### Success Response (`200 OK`)
+```json
+{
+  "is_successful": true,
+  "request_uuid": "4b886829-ee37-4f69-a208-66405d1115d8",
+  "status_code": 200,
+  "message": "success",
+  "data": [
+    {
+      "id": 1,
+      "endpoint": "/Trade/GetTradeHistory/31459957843277944/20261111/false",
+      "ins_code": "31459957843277944",
+      "http_status": 200,
+      "is_blocked": false,
+      "fetched_at": "2026-11-24T16:48:35.688168Z",
+      "body_size": 2723
+    }
+  ],
+  "errors": null,
+  "error_code": 0
+}
+```
+
+##### Field Descriptions
+- `data`: Array of raw response metadata items:
+  - `id`: Unique surrogate primary key.
+  - `endpoint`: API endpoint path.
+  - `ins_code`: TSETMC instrument code.
+  - `http_status`: HTTP status code returned when fetched.
+  - `is_blocked`: Flag indicating if the response was a block/captcha.
+  - `fetched_at`: UTC timestamp of when response was fetched.
+  - `body_size`: Byte length of the verbatim response body.
+
+---
+
+#### `GET /api/v1/raw-responses/:id/trades`
+Parses the stored raw JSON payload of a `GetTradeHistory` response and returns individual trade items along with an aggregated summary. Excludes canceled trades (`canceled != 0`) from the summary metrics.
+
+##### Path Parameters
+- `id` (integer, required): The ID of the raw response record.
+
+##### Success Response (`200 OK`)
+```json
+{
+  "is_successful": true,
+  "request_uuid": "8ef6f8ac-ce85-40a1-bc1d-98dfbbd825d6",
+  "status_code": 200,
+  "message": "success",
+  "data": {
+    "summary": {
+      "trade_count": 14,
+      "total_volume": 1251,
+      "total_value": 377073,
+      "min_price": 290,
+      "max_price": 313,
+      "first_price": 290,
+      "last_price": 299
+    },
+    "trades": [
+      {
+        "n_tran": 14,
+        "time": "12:29:40",
+        "volume": 10,
+        "price": 299,
+        "canceled": false
+      },
+      {
+        "n_tran": 13,
+        "time": "12:15:21",
+        "volume": 6,
+        "price": 299,
+        "canceled": false
+      }
+    ]
+  },
+  "errors": null,
+  "error_code": 0
+}
+```
+
+##### Field Descriptions
+- `summary`:
+  - `trade_count`: Total number of valid (non-canceled) trades.
+  - `total_volume`: Sum of trade volumes for valid trades.
+  - `total_value`: Sum of (volume * price) for valid trades.
+  - `min_price`: Lowest transaction price among valid trades.
+  - `max_price`: Highest transaction price among valid trades.
+  - `first_price`: Transaction price of the earliest trade of the session.
+  - `last_price`: Transaction price of the latest trade of the session.
+- `trades`: Array of all trades:
+  - `n_tran`: Sequential transaction number.
+  - `time`: Trade timestamp formatted as `HH:MM:SS`.
+  - `volume`: Trade share/contract quantity (`qTitTran`).
+  - `price`: Executed transaction price (`pTran`).
+  - `canceled`: Boolean flag indicating if trade was canceled.
+
+##### Error Responses
+- **`404 Not Found`**: Returned when `:id` does not exist in `raw_responses`.
+- **`400 Bad Request`**: Returned when `:id` is not a positive integer, or when the endpoint of the record is not a `GetTradeHistory` response.
