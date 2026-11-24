@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   getRawResponses,
   getRawResponseTrades,
+  formatTradeDateJalali,
   RawResponseItem,
   TradesData,
 } from '../lib/rawResponses';
@@ -125,38 +126,48 @@ export function RawTradesPage() {
         )}
 
         {!isLoadingResponses && responses.length > 0 && (
-          <div className="responses-grid">
-            {responses.map((item) => (
-              <div
-                key={item.id}
-                className={`response-card ${selectedId === item.id ? 'selected' : ''}`}
-                onClick={() => handleSelectResponse(item.id)}
-              >
-                <div className="response-card-header">
-                  <span className="response-ins-code">
-                    {item.ins_code ? `کد: ${item.ins_code}` : 'بدون کد ابزار'}
-                  </span>
-                  <span
-                    className={`response-badge ${
-                      item.is_blocked ? 'blocked' : item.http_status === 200 ? 'success' : 'blocked'
-                    }`}
-                  >
-                    {item.is_blocked
-                      ? 'مسدود شده'
-                      : item.http_status === 200
-                      ? '۲۰۰ موفق'
-                      : `خطا ${item.http_status}`}
-                  </span>
+          <div className="responses-scroll-container">
+            <div className="responses-grid">
+              {responses.map((item) => (
+                <div
+                  key={item.id}
+                  className={`response-card ${selectedId === item.id ? 'selected' : ''}`}
+                  onClick={() => handleSelectResponse(item.id)}
+                >
+                  <div className="response-card-header">
+                    <span className="response-ins-code">
+                      {item.ins_code ? `کد: ${item.ins_code}` : 'بدون کد ابزار'}
+                    </span>
+                    <span
+                      className={`response-badge ${
+                        item.is_blocked ? 'blocked' : item.http_status === 200 ? 'success' : 'blocked'
+                      }`}
+                    >
+                      {item.is_blocked
+                        ? 'مسدود شده'
+                        : item.http_status === 200
+                        ? '۲۰۰ موفق'
+                        : `خطا ${item.http_status}`}
+                    </span>
+                  </div>
+
+                  <div className="response-trade-date-line">
+                    <span className="trade-date-label">تاریخ معامله:</span>
+                    <span className="trade-date-value">
+                      {formatTradeDateJalali(item.trade_date)}
+                    </span>
+                    {item.trade_date && (
+                      <span className="trade-date-raw">({item.trade_date})</span>
+                    )}
+                  </div>
+
+                  <div className="response-card-details">
+                    <span>دریافت: {formatJalaliDateTime(item.fetched_at)}</span>
+                    <span>{faNum.format(item.body_size)} بایت</span>
+                  </div>
                 </div>
-                <div className="response-card-details">
-                  <span>زمان: {formatJalaliDateTime(item.fetched_at)}</span>
-                  <span>حجم: {faNum.format(item.body_size)} بایت</span>
-                </div>
-                <div className="response-endpoint" title={item.endpoint}>
-                  {item.endpoint}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </section>

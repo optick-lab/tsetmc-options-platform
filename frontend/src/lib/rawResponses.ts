@@ -8,6 +8,7 @@ export interface RawResponseItem {
   is_blocked: boolean;
   fetched_at: string;
   body_size: number;
+  trade_date: string | null;
 }
 
 export interface TradeItem {
@@ -39,4 +40,18 @@ export async function getRawResponses(): Promise<RawResponseItem[]> {
 
 export async function getRawResponseTrades(id: number): Promise<TradesData> {
   return apiFetch<TradesData>(`/raw-responses/${id}/trades`);
+}
+
+export function formatTradeDateJalali(tradeDateStr?: string | null): string {
+  if (!tradeDateStr || tradeDateStr.length !== 8) return '—';
+  const year = parseInt(tradeDateStr.slice(0, 4), 10);
+  const month = parseInt(tradeDateStr.slice(4, 6), 10) - 1;
+  const day = parseInt(tradeDateStr.slice(6, 8), 10);
+  const date = new Date(year, month, day);
+  return new Intl.DateTimeFormat('fa-IR', {
+    calendar: 'persian',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
 }
