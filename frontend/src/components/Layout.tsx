@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import './Layout.css';
 
 interface LayoutProps {
@@ -7,6 +7,9 @@ interface LayoutProps {
 }
 
 export function Layout({ children }: LayoutProps) {
+  const location = useLocation();
+  const isTradesPage = location.pathname.startsWith('/trades');
+
   return (
     <div className="app-shell" dir="rtl">
       <header className="app-header">
@@ -20,17 +23,28 @@ export function Layout({ children }: LayoutProps) {
             <nav className="header-nav">
               <NavLink
                 to="/"
-                className="nav-pill active"
+                end
+                className={({ isActive }) => `nav-pill ${isActive ? 'active' : ''}`}
               >
                 دارایی‌های پایه
+              </NavLink>
+              <NavLink
+                to="/trades"
+                className={({ isActive }) => `nav-pill ${isActive ? 'active' : ''}`}
+              >
+                داده‌های معاملات
               </NavLink>
             </nav>
           </div>
 
           <div className="header-hero">
-            <h1 className="hero-title">دارایی‌های پایه</h1>
+            <h1 className="hero-title">
+              {isTradesPage ? 'داده‌های معاملات' : 'دارایی‌های پایه'}
+            </h1>
             <p className="hero-subtitle">
-              ابزارهای بازار نقدی (سهام و صندوق‌ها) مشمول قراردادهای اختیار معامله
+              {isTradesPage
+                ? 'استخراج و مشاهده آمار و ریز معاملات از پاسخ‌های خام ذخیره‌شده TSETMC'
+                : 'ابزارهای بازار نقدی (سهام و صندوق‌ها) مشمول قراردادهای اختیار معامله'}
             </p>
           </div>
         </div>
