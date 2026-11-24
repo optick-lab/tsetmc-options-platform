@@ -25,7 +25,7 @@ func NewRawResponseRepository(db *gorm.DB) RawResponseRepository {
 	return &rawResponseRepository{db: db}
 }
 
-// GetAll retrieves all raw responses without the body, ordered by fetched_at DESC.
+// GetAll retrieves all raw responses without the body, ordered by trade_date DESC, fetched_at DESC.
 func (r *rawResponseRepository) GetAll(ctx context.Context) ([]dto.RawResponseListItemDto, error) {
 	if r.db == nil {
 		return nil, errors.New("database connection is not initialized")
@@ -34,8 +34,8 @@ func (r *rawResponseRepository) GetAll(ctx context.Context) ([]dto.RawResponseLi
 	var items []dto.RawResponseListItemDto
 	err := r.db.WithContext(ctx).
 		Model(&models.RawResponse{}).
-		Select("id, endpoint, ins_code, http_status, is_blocked, fetched_at, LENGTH(body) as body_size").
-		Order("fetched_at DESC, id DESC").
+		Select("id, endpoint, ins_code, http_status, is_blocked, fetched_at, LENGTH(body) as body_size, COALESCE(SUBSTRING(endpoint FROM '/GetTradeHistory/[^/]+/([0-9]{8})'), SUBSTRING(url FROM '/GetTradeHistory/[^/]+/([0-9]{8})'), SUBSTRING(endpoint FROM '([0-9]{8})')) as trade_date").
+		Order("trade_date DESC NULLS LAST, fetched_at DESC, id DESC").
 		Scan(&items).Error
 	if err != nil {
 		return nil, err

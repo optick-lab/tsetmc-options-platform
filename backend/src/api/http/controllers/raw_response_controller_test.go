@@ -50,6 +50,7 @@ func setupRawResponseTestRouter(svc services.RawResponseService) *gin.Engine {
 
 func TestRawResponseController_List_Success(t *testing.T) {
 	insCode := "31459957843277944"
+	tradeDate := "20261111"
 	mockSvc := &mockRawResponseService{
 		responses: []dto.RawResponseListItemDto{
 			{
@@ -60,6 +61,7 @@ func TestRawResponseController_List_Success(t *testing.T) {
 				IsBlocked:  false,
 				FetchedAt:  time.Now(),
 				BodySize:   2723,
+				TradeDate:  &tradeDate,
 			},
 		},
 	}
@@ -83,6 +85,10 @@ func TestRawResponseController_List_Success(t *testing.T) {
 
 	if !resp.IsSuccessful || len(resp.Data) != 1 {
 		t.Errorf("expected 1 raw response, got %d", len(resp.Data))
+	}
+
+	if resp.Data[0].TradeDate == nil || *resp.Data[0].TradeDate != "20261111" {
+		t.Errorf("expected trade_date='20261111', got %v", resp.Data[0].TradeDate)
 	}
 }
 

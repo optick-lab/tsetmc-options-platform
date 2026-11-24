@@ -11,6 +11,7 @@ type RawResponseListItemDto struct {
 	IsBlocked  bool      `json:"is_blocked"`
 	FetchedAt  time.Time `json:"fetched_at"`
 	BodySize   int64     `json:"body_size"`
+	TradeDate  *string   `json:"trade_date"`
 }
 
 // TradeItemDto represents a single trade parsed from TSETMC GetTradeHistory.
