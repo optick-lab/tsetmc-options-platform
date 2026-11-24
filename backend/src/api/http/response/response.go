@@ -16,6 +16,12 @@ type ResponseEnvelope struct {
 	Data         interface{} `json:"data"`
 	Errors       interface{} `json:"errors"`
 	ErrorCode    int         `json:"error_code"`
+
+	// Mirrored pagination fields for direct root-level access if applicable
+	Items    interface{} `json:"items,omitempty"`
+	Page     int         `json:"page,omitempty"`
+	PageSize int         `json:"page_size,omitempty"`
+	Total    *int64      `json:"total,omitempty"`
 }
 
 // Builder constructs and sends standard response envelopes.
@@ -27,6 +33,10 @@ type Builder struct {
 	data         interface{}
 	errors       interface{}
 	errorCode    int
+	items        interface{}
+	page         int
+	pageSize     int
+	total        *int64
 }
 
 // Api initializes a response builder for the gin context.
@@ -80,6 +90,21 @@ func (b *Builder) SetSuccessful(isSuccessful bool) *Builder {
 	return b
 }
 
+// SetPaginatedData sets pagination data payload both inside data and as mirrored root fields.
+func (b *Builder) SetPaginatedData(items interface{}, page, pageSize int, total int64) *Builder {
+	b.data = gin.H{
+		"items":     items,
+		"page":      page,
+		"page_size": pageSize,
+		"total":     total,
+	}
+	b.items = items
+	b.page = page
+	b.pageSize = pageSize
+	b.total = &total
+	return b
+}
+
 // Send renders the response envelope as JSON.
 func (b *Builder) Send() {
 	reqID := ""
@@ -110,6 +135,10 @@ func (b *Builder) Send() {
 		Data:         b.data,
 		Errors:       b.errors,
 		ErrorCode:    b.errorCode,
+		Items:        b.items,
+		Page:         b.page,
+		PageSize:     b.pageSize,
+		Total:        b.total,
 	}
 
 	if b.c != nil {

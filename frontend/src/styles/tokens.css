@@ -1,26 +1,63 @@
 :root {
-  --color-bg: #0f172a;
-  --color-surface: #1e293b;
-  --color-surface-hover: #334155;
-  --color-border: #334155;
-  --color-text-primary: #f8fafc;
-  --color-text-secondary: #94a3b8;
-  --color-text-muted: #64748b;
-  --color-accent: #38bdf8;
-  --color-success: #10b981;
-  --color-success-bg: rgba(16, 185, 129, 0.15);
-  --color-warning: #f59e0b;
-  --color-warning-bg: rgba(245, 158, 11, 0.15);
-  --color-danger: #ef4444;
-  --color-danger-bg: rgba(239, 68, 68, 0.15);
+  /* Brand & Action Colors */
+  --orange: #FF5A1F;
+  --orange-deep: #C2410C;
+  --orange-tint: #FFF4EF;
 
-  --font-family-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  /* Blue Accents */
+  --blue: #9DB4FF;
+  --blue-soft: #C5D0FF;
+  --blue-pale: #EEF1FF;
+  --blue-deep: #3D52B0;
+
+  /* Backgrounds & Surfaces (Light Theme Only) */
+  --page: #F4F5F7;
+  --surface: #FFFFFF;
+  --surface-2: #ECEEF1;
+
+  /* Typography Colors */
+  --ink: #1C1C1E;
+  --text-2: #6B7280;
+  --text-3: #9CA3AF;
+
+  /* Borders & Dividers */
+  --line: #E2E5EA;
+
+  /* Status Colors */
+  --danger: #DC2626;
+  --danger-bg: #FEF2F2;
+  --success: #16A34A;
+  --success-bg: #F0FDF4;
+
+  /* Spacing Scale */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-18: 18px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+
+  /* Border Radii */
+  --radius-12: 12px;
+  --radius-14: 14px;
+  --radius-16: 16px;
+  --radius-20: 20px;
+  --radius-32: 32px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-btn: 0 4px 14px rgba(255, 90, 31, 0.35);
+  --shadow-soft: 0 2px 8px rgba(28, 28, 30, 0.04);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 6px 16px rgba(0, 0, 0, 0.02);
+
+  /* Transitions */
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+
+  /* Typography */
+  --font-family-sans: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   --font-family-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
 }
