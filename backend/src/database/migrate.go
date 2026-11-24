@@ -61,8 +61,8 @@ func MigrateUp() error {
 	return nil
 }
 
-// MigrateDown rolls back all applied migrations.
-func MigrateDown() error {
+// MigrateDown rolls back migrations (all by default, or by specified number of steps).
+func MigrateDown(steps ...int) error {
 	m, err := getMigrateInstance()
 	if err != nil {
 		return err
@@ -76,6 +76,14 @@ func MigrateDown() error {
 			logger.Warn("Failed to close migration database", zap.Error(dbErr))
 		}
 	}()
+
+	if len(steps) > 0 && steps[0] > 0 {
+		if err := m.Steps(-steps[0]); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+			return fmt.Errorf("migration down failed: %w", err)
+		}
+		logger.Info("Database migrations rolled back partially", zap.Int("steps", steps[0]))
+		return nil
+	}
 
 	if err := m.Down(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return fmt.Errorf("migration down failed: %w", err)
