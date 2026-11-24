@@ -6,6 +6,16 @@
 node_modules
 dist
 build
+# Python
+.venv
+venv
+env
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+
 data
 raw
 *.gz
