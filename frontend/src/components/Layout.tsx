@@ -8,8 +8,7 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const location = useLocation();
-  const isUnderlyings =
-    location.pathname === '/' || location.pathname === '/underlyings';
+  const isTradesPage = location.pathname.startsWith('/trades');
 
   return (
     <div className="app-shell" dir="rtl">
@@ -24,37 +23,29 @@ export function Layout({ children }: LayoutProps) {
             <nav className="header-nav">
               <NavLink
                 to="/"
-                className={`nav-pill ${isUnderlyings ? 'active' : ''}`}
+                end
+                className={({ isActive }) => `nav-pill ${isActive ? 'active' : ''}`}
               >
                 دارایی‌های پایه
               </NavLink>
               <NavLink
-                to="/status"
-                className={({ isActive }) =>
-                  `nav-pill ${isActive ? 'active' : ''}`
-                }
+                to="/trades"
+                className={({ isActive }) => `nav-pill ${isActive ? 'active' : ''}`}
               >
-                وضعیت سیستم
+                داده‌های معاملات
               </NavLink>
             </nav>
           </div>
 
           <div className="header-hero">
-            {isUnderlyings ? (
-              <>
-                <h1 className="hero-title">دارایی‌های پایه</h1>
-                <p className="hero-subtitle">
-                  ابزارهای بازار نقدی (سهام و صندوق‌ها) مشمول قراردادهای اختیار معامله
-                </p>
-              </>
-            ) : (
-              <>
-                <h1 className="hero-title">وضعیت سیستم</h1>
-                <p className="hero-subtitle">
-                  پایش سلامت سرویس‌های مرکزی و ارتباط با پایگاه‌داده تیک دیتا
-                </p>
-              </>
-            )}
+            <h1 className="hero-title">
+              {isTradesPage ? 'داده‌های معاملات' : 'دارایی‌های پایه'}
+            </h1>
+            <p className="hero-subtitle">
+              {isTradesPage
+                ? 'استخراج و مشاهده آمار و ریز معاملات از پاسخ‌های خام ذخیره‌شده TSETMC'
+                : 'ابزارهای بازار نقدی (سهام و صندوق‌ها) مشمول قراردادهای اختیار معامله'}
+            </p>
           </div>
         </div>
       </header>

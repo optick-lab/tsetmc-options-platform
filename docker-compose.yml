@@ -59,5 +59,30 @@ services:
       backend:
         condition: service_healthy
 
+  crawler:
+    build:
+      context: ./crawler
+      dockerfile: Dockerfile
+    container_name: tsetmc-crawler
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-change_me}
+      DB_NAME: ${DB_NAME:-tsetmc_options}
+      CRAWLER_BASE_URL: ${CRAWLER_BASE_URL:-https://cdn.tsetmc.com/api}
+      CRAWLER_MIN_DELAY_SECONDS: ${CRAWLER_MIN_DELAY_SECONDS:-300}
+      CRAWLER_MAX_RETRIES: ${CRAWLER_MAX_RETRIES:-3}
+      CRAWLER_BACKOFF_FACTOR: ${CRAWLER_BACKOFF_FACTOR:-1.0}
+      CRAWLER_USER_AGENT: ${CRAWLER_USER_AGENT:-tsetmc-options-platform/0.1 (student project; optick-lab)}
+      CRAWLER_REQUEST_TIMEOUT: ${CRAWLER_REQUEST_TIMEOUT:-10.0}
+      CRAWLER_QUIET_HOURS_START: ${CRAWLER_QUIET_HOURS_START:-09:00}
+      CRAWLER_QUIET_HOURS_END: ${CRAWLER_QUIET_HOURS_END:-12:30}
+      CRAWLER_QUIET_HOURS_TZ: ${CRAWLER_QUIET_HOURS_TZ:-Asia/Tehran}
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["python", "-m", "crawler", "--help"]
+
 volumes:
   pgdata:

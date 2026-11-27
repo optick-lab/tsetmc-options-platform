@@ -129,17 +129,13 @@ func (m *mockUnderlyingService) GetUnderlyings(ctx context.Context, page, pageSi
 }
 
 type paginatedEnvelopeResponse struct {
-	IsSuccessful bool                    `json:"is_successful"`
-	RequestUUID  string                  `json:"request_uuid"`
-	StatusCode   int                     `json:"status_code"`
-	Message      string                  `json:"message"`
+	IsSuccessful bool                        `json:"is_successful"`
+	RequestUUID  string                      `json:"request_uuid"`
+	StatusCode   int                         `json:"status_code"`
+	Message      string                      `json:"message"`
 	Data         dto.PaginatedUnderlyingsDto `json:"data"`
-	Items        []dto.UnderlyingItemDto `json:"items"`
-	Page         int                     `json:"page"`
-	PageSize     int                     `json:"page_size"`
-	Total        int64                   `json:"total"`
-	Errors       []string                `json:"errors"`
-	ErrorCode    int                     `json:"error_code"`
+	Errors       []string                    `json:"errors"`
+	ErrorCode    int                         `json:"error_code"`
 }
 
 func TestUnderlyingController_List_Success(t *testing.T) {
@@ -182,6 +178,24 @@ func TestUnderlyingController_List_Success(t *testing.T) {
 		t.Fatalf("Expected status 200, got %d: %s", w.Code, w.Body.String())
 	}
 
+	var rawMap map[string]interface{}
+	if err := json.Unmarshal(w.Body.Bytes(), &rawMap); err != nil {
+		t.Fatalf("Failed to parse raw response map: %v", err)
+	}
+
+	if _, exists := rawMap["items"]; exists {
+		t.Errorf("Expected 'items' to NOT exist at root level")
+	}
+	if _, exists := rawMap["total"]; exists {
+		t.Errorf("Expected 'total' to NOT exist at root level")
+	}
+	if _, exists := rawMap["page"]; exists {
+		t.Errorf("Expected 'page' to NOT exist at root level")
+	}
+	if _, exists := rawMap["page_size"]; exists {
+		t.Errorf("Expected 'page_size' to NOT exist at root level")
+	}
+
 	var res paginatedEnvelopeResponse
 	if err := json.Unmarshal(w.Body.Bytes(), &res); err != nil {
 		t.Fatalf("Failed to parse response: %v", err)
@@ -191,21 +205,14 @@ func TestUnderlyingController_List_Success(t *testing.T) {
 		t.Errorf("Expected is_successful=true, got false")
 	}
 
-	// Verify both data and top-level mirrored pagination fields
 	if len(res.Data.Items) != 10 {
 		t.Errorf("Expected 10 items in data.items, got %d", len(res.Data.Items))
 	}
 	if res.Data.Total != 25 {
 		t.Errorf("Expected data.total=25, got %d", res.Data.Total)
 	}
-	if len(res.Items) != 10 {
-		t.Errorf("Expected 10 items at root, got %d", len(res.Items))
-	}
-	if res.Total != 25 {
-		t.Errorf("Expected total=25 at root, got %d", res.Total)
-	}
-	if res.Page != 1 || res.PageSize != 10 {
-		t.Errorf("Expected page=1, page_size=10, got page=%d, page_size=%d", res.Page, res.PageSize)
+	if res.Data.Page != 1 || res.Data.PageSize != 10 {
+		t.Errorf("Expected data.page=1, data.page_size=10, got page=%d, page_size=%d", res.Data.Page, res.Data.PageSize)
 	}
 }
 
